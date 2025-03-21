@@ -24,3 +24,32 @@ def calculate_metrics(processes):
     avg_waiting_time = total_waiting_time / len(processes)
     avg_turnaround_time = total_turnaround_time / len(processes)
     return avg_waiting_time, avg_turnaround_time
+
+def fcfs_scheduling(processes):
+    processes.sort(key=lambda x: x.arrival_time)
+    current_time = 0
+    for process in processes:
+        process.start_time = max(current_time, process.arrival_time)
+        process.finish_time = process.start_time + process.burst_time
+        current_time = process.finish_time
+    return processes
+
+def sjf_scheduling(processes):
+    processes.sort(key=lambda x: (x.arrival_time, x.burst_time))
+    current_time = 0
+    ready_queue = []
+    completed_processes = []
+    while len(completed_processes) < len(processes):
+        for process in processes:
+            if process.arrival_time <= current_time and process not in ready_queue and process not in completed_processes:
+                ready_queue.append(process)
+        if ready_queue:
+            ready_queue.sort(key=lambda x: x.burst_time)
+            process = ready_queue.pop(0)
+            process.start_time = current_time
+            process.finish_time = process.start_time + process.burst_time
+            current_time = process.finish_time
+            completed_processes.append(process)
+        else:
+            current_time += 1
+    return completed_processes
