@@ -53,3 +53,28 @@ def sjf_scheduling(processes):
         else:
             current_time += 1
     return completed_processes
+
+def round_robin_scheduling(processes, time_quantum):
+    processes.sort(key=lambda x: x.arrival_time)
+    current_time = 0
+    ready_queue = []
+    completed_processes = []
+    while len(completed_processes) < len(processes):
+        for process in processes:
+            if process.arrival_time <= current_time and process not in ready_queue and process not in completed_processes:
+                ready_queue.append(process)
+        if ready_queue:
+            process = ready_queue.pop(0)
+            if process.burst_time > time_quantum:
+                process.start_time = current_time
+                process.burst_time -= time_quantum
+                current_time += time_quantum
+                ready_queue.append(process)
+            else:
+                process.start_time = current_time
+                current_time += process.burst_time
+                process.finish_time = current_time
+                completed_processes.append(process)
+        else:
+            current_time += 1
+    return completed_processes
