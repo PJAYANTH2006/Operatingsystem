@@ -1,80 +1,80 @@
 import matplotlib.pyplot as plt
-import numpy as np
-import copy
 
 class Process:
-    def __init__(self, id, arrival_time, burst_time, priority):
-        self.id = id
+    def __init__(self, pid, arrival_time, burst_time, priority=None):
+        self.pid = pid
         self.arrival_time = arrival_time
         self.burst_time = burst_time
-        self.priority = priority
-        self.start_time = 0
-        self.finish_time = 0
-        self.waiting_time = 0
+        self.remaining_time = burst_time
+        self.completion_time = 0
         self.turnaround_time = 0
+        self.waiting_time = 0
+        self.priority = priority
 
-def calculate_metrics(processes):
-    total_waiting_time = 0
-    total_turnaround_time = 0
-    for process in processes:
-        process.waiting_time = process.start_time - process.arrival_time
-        process.turnaround_time = process.finish_time - process.arrival_time
-        total_waiting_time += process.waiting_time
-        total_turnaround_time += process.turnaround_time
-    avg_waiting_time = total_waiting_time / len(processes)
-    avg_turnaround_time = total_turnaround_time / len(processes)
-    return avg_waiting_time, avg_turnaround_time
+def fcfs(processes):
+    time = 0
+    gantt_chart = []
+    for process in sorted(processes, key=lambda x: x.arrival_time):
+        if time < process.arrival_time:
+            time = process.arrival_time
+        gantt_chart.append((process.pid, time, time + process.burst_time))
+        time += process.burst_time
+        process.completion_time = time
+        process.turnaround_time = process.completion_time - process.arrival_time
+        process.waiting_time = process.turnaround_time - process.burst_time
+    return gantt_chart
 
-def fcfs_scheduling(processes):
-    processes.sort(key=lambda x: x.arrival_time)
-    current_time = 0
-    for process in processes:
-        process.start_time = max(current_time, process.arrival_time)
-        process.finish_time = process.start_time + process.burst_time
-        current_time = process.finish_time
-    return processes
+def sjf(processes):
+    time = 0
+    gantt_chart = []
+    while processes:
+        available_processes = [p for p in processes if p.arrival_time <= time]
+        if not available_processes:
+            time += 1
+            continue
+        process = min(available_processes, key=lambda x: x.burst_time)
+        gantt_chart.append((process.pid, time, time + process.burst_time))
+        time += process.burst_time
+        processes.remove(process)
+        process.completion_time = time
+        process.turnaround_time = process.completion_time - process.arrival_time
+        process.waiting_time = process.turnaround_time - process.burst_time
+    return gantt_chart
 
-def sjf_scheduling(processes):
-    processes.sort(key=lambda x: (x.arrival_time, x.burst_time))
-    current_time = 0
-    ready_queue = []
-    completed_processes = []
-    while len(completed_processes) < len(processes):
-        for process in processes:
-            if process.arrival_time <= current_time and process not in ready_queue and process not in completed_processes:
-                ready_queue.append(process)
-        if ready_queue:
-            ready_queue.sort(key=lambda x: x.burst_time)
-            process = ready_queue.pop(0)
-            process.start_time = current_time
-            process.finish_time = process.start_time + process.burst_time
-            current_time = process.finish_time
-            completed_processes.append(process)
+def round_robin(processes, quantum):
+    time = 0
+    gantt_chart = []
+    queue = processes[:]
+    while queue:
+        process = queue.pop(0)
+        if process.remaining_time > quantum:
+            gantt_chart.append((process.pid, time, time + quantum))
+            time += quantum
+            process.remaining_time -= quantum
+            queue.append(process)
         else:
-            current_time += 1
-    return completed_processes
+            gantt_chart.append((process.pid, time, time + process.remaining_time))
+            time += process.remaining_time
+            process.remaining_time = 0
+            process.completion_time = time
+            process.turnaround_time = process.completion_time - process.arrival_time
+            process.waiting_time = process.turnaround_time - process.burst_time
+    return gantt_chart
 
-def round_robin_scheduling(processes, time_quantum):
-    processes.sort(key=lambda x: x.arrival_time)
-    current_time = 0
-    ready_queue = []
-    completed_processes = []
-    while len(completed_processes) < len(processes):
-        for process in processes:
-            if process.arrival_time <= current_time and process not in ready_queue and process not in completed_processes:
-                ready_queue.append(process)
-        if ready_queue:
-            process = ready_queue.pop(0)
-            if process.burst_time > time_quantum:
-                process.start_time = current_time
-                process.burst_time -= time_quantum
-                current_time += time_quantum
-                ready_queue.append(process)
-            else:
-                process.start_time = current_time
-                current_time += process.burst_time
-                process.finish_time = current_time
-                completed_processes.append(process)
-        else:
-            current_time += 1
-    return completed_processes
+def priority_scheduling(processes):
+    time = 0
+    gantt_chart = []
+    while processes:
+        available_processes = [p for p in processes if p.arrival_time <= time]
+        if not available_processes:
+            time += 1
+            continue
+        process = min(available_processes, key=lambda x: x.priority)
+        gantt_chart.append((process.pid, time, time + process.burst_time))
+        time += process.burst_time
+        processes.remove(process)
+        process.completion_time = time
+        process.turnaround_time = process.completion_time - process.arrival_time
+        process.waiting_time = process.turnaround_time - process.burst_time
+    return gantt_chart
+    
