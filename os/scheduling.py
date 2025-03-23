@@ -102,3 +102,52 @@ def plot_gantt_chart(gantt_charts, titles, avg_waiting_times, avg_turnaround_tim
 
     plt.tight_layout()
     plt.show()
+def calculate_average_times(processes):
+    total_waiting_time = sum(p.waiting_time for p in processes)
+    total_turnaround_time = sum(p.turnaround_time for p in processes)
+    n = len(processes)
+    average_waiting_time = total_waiting_time / n
+    average_turnaround_time = total_turnaround_time / n
+    return average_waiting_time, average_turnaround_time
+
+def main():
+    processes = [
+        Process(pid=1, arrival_time=0, burst_time=5, priority=2),
+        Process(pid=2, arrival_time=1, burst_time=3, priority=1),
+        Process(pid=3, arrival_time=2, burst_time=8, priority=3),
+        Process(pid=4, arrival_time=3, burst_time=6, priority=2)
+    ]
+
+    gantt_charts = []
+    titles = []
+    avg_waiting_times = []
+    avg_turnaround_times = []
+
+    gantt_charts.append(fcfs(processes.copy()))
+    titles.append("FCFS Scheduling")
+    avg_waiting_time, avg_turnaround_time = calculate_average_times(processes)
+    avg_waiting_times.append(avg_waiting_time)
+    avg_turnaround_times.append(avg_turnaround_time)
+
+    gantt_charts.append(sjf(processes.copy()))
+    titles.append("SJF Scheduling")
+    avg_waiting_time, avg_turnaround_time = calculate_average_times(processes)
+    avg_waiting_times.append(avg_waiting_time)
+    avg_turnaround_times.append(avg_turnaround_time)
+
+    gantt_charts.append(round_robin(processes.copy(), quantum=2))
+    titles.append("Round Robin Scheduling")
+    avg_waiting_time, avg_turnaround_time = calculate_average_times(processes)
+    avg_waiting_times.append(avg_waiting_time)
+    avg_turnaround_times.append(avg_turnaround_time)
+
+    gantt_charts.append(priority_scheduling(processes.copy()))
+    titles.append("Priority Scheduling")
+    avg_waiting_time, avg_turnaround_time = calculate_average_times(processes)
+     avg_waiting_times.append(avg_waiting_time)
+    avg_turnaround_times.append(avg_turnaround_time)
+
+    plot_gantt_chart(gantt_charts, titles, avg_waiting_times, avg_turnaround_times)
+
+if _name_ == "_main_":
+    main()
