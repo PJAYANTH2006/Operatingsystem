@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 class Process:
-    def __init__(self, pid, arrival_time, burst_time, priority=None):
+    def _init_(self, pid, arrival_time, burst_time, priority=None):
         self.pid = pid
         self.arrival_time = arrival_time
         self.burst_time = burst_time
@@ -77,4 +77,28 @@ def priority_scheduling(processes):
         process.turnaround_time = process.completion_time - process.arrival_time
         process.waiting_time = process.turnaround_time - process.burst_time
     return gantt_chart
-    
+
+def plot_gantt_chart(gantt_charts, titles, avg_waiting_times, avg_turnaround_times):
+    fig, gnt = plt.subplots(len(gantt_charts), 1, figsize=(12, 5 * len(gantt_charts)))
+    for i, gantt_chart in enumerate(gantt_charts):
+        gnt[i].set_ylim(0, 1)
+        gnt[i].set_xlim(0, max(end for _, start, end in gantt_chart) + 5)  # added space for labels
+        gnt[i].set_xlabel('Time')
+        gnt[i].set_yticks([])
+        gnt[i].set_title(titles[i])
+
+        for j, (pid, start, end) in enumerate(gantt_chart):
+            gnt[i].broken_barh([(start, end - start)], (0, 1), facecolors=('orange' if j % 2 == 0 else 'lightblue'))
+            gnt[i].text((start + end) / 2, 0.5, str(pid), ha='center', va='center')
+
+        # Adjust the position of average times to make it clearer
+        gnt[i].text(max(end for _, start, end in gantt_chart) - 4, 0.1, 
+                     f'Avg Waiting Time: {avg_waiting_times[i]:.2f}', 
+                     ha='right', va='center', fontsize=10)
+        
+        gnt[i].text(max(end for _, start, end in gantt_chart) - 4, 0.3, 
+                     f'Avg Turnaround Time: {avg_turnaround_times[i]:.2f}', 
+                     ha='right', va='center', fontsize=10)
+
+    plt.tight_layout()
+    plt.show()
